@@ -1,13 +1,16 @@
 ﻿using GraphQL.Api.Data.Entities;
 using GraphQL.Api.Repository;
+using GraphQL.DataLoader;
 using GraphQL.Resolvers;
 using GraphQL.Types;
+using System.Security.Claims;
 
 namespace GraphQL.Api.GraphQL.Types
 {
     public class ProductType : ObjectGraphType<Product>
     {
-        public ProductType(ProductReviewRepository reviewRepository)
+        public ProductType(ProductReviewRepository reviewRepository,
+                IDataLoaderContextAccessor dataLoaderAccessor)
         {
             Field(t => t.Id);
             Field(t => t.Name).Description("The name of the product");
@@ -17,7 +20,7 @@ namespace GraphQL.Api.GraphQL.Types
             Field(t => t.Price);
             Field(t => t.Rating).Description("The (max 5) star customer rating");
             Field(t => t.Stock);
-
+            
             AddField(new FieldType
             {
                 Name = "Type",
@@ -29,8 +32,13 @@ namespace GraphQL.Api.GraphQL.Types
                 "reviews",
                 resolve: context =>
                 {
-                    var r = reviewRepository.GetForProduct(context.Source.Id);
-                    return r;
+                    // for autorization we can use
+                    var user = (ClaimsPrincipal)context.UserContext["user"];
+                    
+                    var loader =
+                        dataLoaderAccessor.Context.GetOrAddCollectionBatchLoader<int, ProductReview>(
+                            "GetReviewsByProductId", reviewRepository.GetForProducts);
+                    return loader.LoadAsync(context.Source.Id);
                 });
         }
     }

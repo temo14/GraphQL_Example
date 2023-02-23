@@ -14,8 +14,18 @@ builder.Services.AddScoped<ProductRepository>();
 builder.Services.AddScoped<ProductReviewRepository>();
 builder.Services.AddScoped<GraphSchema>();
 
-builder.Services.AddGraphQL(o => o.
-    AddGraphTypes()
+builder.Services.AddGraphQL(o => o
+    .AddGraphTypes()
+    .AddUserContextBuilder(httpContext =>
+    {
+        var userContext = new Dictionary<string, object?>
+            {
+                { "user", httpContext.User }
+            };
+
+        return userContext;
+    })
+    .AddDataLoader()
     .AddSystemTextJson());
 
 var app = builder.Build();

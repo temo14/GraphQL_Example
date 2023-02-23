@@ -17,5 +17,9 @@ namespace GraphQL.Api.Repository
         {
             return context.Products.ToListAsync();
         }
+        public Task<Product> GetOne(int id)
+        {
+            return context.Products.SingleAsync(p => p.Id == id);
+        }
     }
 }

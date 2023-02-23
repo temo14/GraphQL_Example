@@ -22,7 +22,9 @@ namespace GraphQL.Api.Repository
 
         public async Task<ILookup<int, ProductReview>> GetForProducts(IEnumerable<int> productIds)
         {
-            var reviews = await _dbContext.ProductReviews.Where(pr => productIds.Contains(pr.ProductId)).ToListAsync();
+            var reviews = await _dbContext.ProductReviews.Where(
+                pr => productIds.Contains(pr.ProductId)).ToListAsync();
+
             return reviews.ToLookup(r => r.ProductId);
         }
     }
